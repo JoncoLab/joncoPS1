@@ -153,3 +153,4 @@ ps1=(
 )
 
 PS1="${debian_chroot:+($debian_chroot)}${ps1[time]} ${ps1[sp]} ${ps1[usr]} ${ps1[sp]} ${ps1[dir]} ${ps1[sp]}${ps1[git]}${ps1[sp]}${ps1[sp]} "
+
