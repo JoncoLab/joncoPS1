@@ -1,0 +1,52 @@
+colorize() {
+  declare -xi transform
+  declare -xi color
+  declare -x style
+  declare -x CLOSE_TAG
+  declare -x OPEN_TAG
+  declare -x colorized_text
+
+  if [ $# == 3 ]
+  then
+    case $1 in
+      error) color=1;;
+      warning) color=5;;
+      info) color=4;;
+      caret) color=2;;
+      *) color=6;;
+    esac
+
+    case $2 in
+      *bold|-b) transform=1;;
+      *italic|-i) transform=3;;
+      *underline|-u) transform=4;;
+      *thin|-th) transform=2;;
+      *) transform=0;;
+    esac
+  else
+    color=0
+    transform=0
+  fi
+
+  local style="0${transform};3${color}"
+
+  CLOSE_TAG="\[\e[m\]"
+  OPEN_TAG="\[\e[${style}m\]"
+
+  colorized_text="${OPEN_TAG}$3${CLOSE_TAG}"
+  echo $colorized_text
+}
+
+# get current branch in git repo
+declare -x colorize
+declare -xA ps1
+declare -x PS1
+
+ps1=(
+  [time]=`colorize error -b '\A'`
+  [sp]=`colorize error -b '>'`
+  [usr]=`colorize caret -b '\u@\h'`
+  [dir]=`colorize info -b '\w'`
+)
+
+PS1="${debian_chroot:+($debian_chroot)}${ps1[time]} ${ps1[sp]} ${ps1[usr]} ${ps1[sp]} ${ps1[dir]} ${ps1[sp]} \$(git branch 2>/dev/null | grep '^*' | colrm 1 2) ${ps1[sp]}${ps1[sp]} "

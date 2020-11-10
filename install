@@ -1,0 +1,24 @@
+init() {
+    declare -x is_installed
+    is_installed=`tail ~/.bashrc | grep -c joncoPS1`
+
+    echo 'Checking...'
+
+    if [ $is_installed = 0 ]
+    then 
+        echo 'Installing...'
+        cp -fu ./custom_bash_ps1 ~/.joncoPS1
+        chmod =rw- ~/.joncoPS1
+        echo '
+# Implement custom PS1 
+# joncoPS1
+source ~/.joncoPS1' >> ~/.bashrc
+    else
+        echo 'Already installed.'
+    fi
+        
+    echo 'Process finished.'
+    notify-send joncoPS1 'Custom PS1 by Jonco Lab launched.'
+}
+
+init
