@@ -37,110 +37,8 @@ colorize() {
   echo $colorized_text
 }
 
-parse_git_status() {
-  declare -xi stat
-  declare -x status
-  declare -x dirty
-  declare -x untracked
-  declare -x ahead
-  declare -x newfile
-  declare -x renamed
-  declare -x deleted
-
-
-  status=`git status 2>&1 | tee`
-
-  dirty=`echo -n "${status}" 2> /dev/null | grep "modified:" &> /dev/null; echo "$?"`
-	untracked=`echo -n "${status}" 2> /dev/null | grep "Untracked files" &> /dev/null; echo "$?"`
-	ahead=`echo -n "${status}" 2> /dev/null | grep "Your branch is ahead of" &> /dev/null; echo "$?"`
-  ahead=`echo -n "${status}" 2> /dev/null | grep "Your branch is behind of" &> /dev/null; echo "$?"`
-	newfile=`echo -n "${status}" 2> /dev/null | grep "new file:" &> /dev/null; echo "$?"`
-	renamed=`echo -n "${status}" 2> /dev/null | grep "renamed:" &> /dev/null; echo "$?"`
-	deleted=`echo -n "${status}" 2> /dev/null | grep "deleted:" &> /dev/null; echo "$?"`
-
-  stat=0
-
-	if [ "${renamed}" == "0" ] || [ "${deleted}" == "0" ] || [ "${newfile}" == "0" ] || [ "${dirty}" == "0" ]
-  then
-    stat=1
-  else
-    stat=2
-	fi
-
-  if [ "${untracked}" == "0" ]
-  then
-    stat=3
-	fi
-
-  if [ "${ahead}" == "0" ]
-  then
-    stat=4
-	fi
-
-  if [ "${behind}" == "0" ]
-  then
-    stat=5
-  fi
-
-  return $stat
-}
-
 # get current branch in git repo
-parse_git_branch() {
-  declare -x branch
-  declare -x stat
-  declare -x branch_name
-  declare -x t
-  declare -x c
-  declare -x colorized_branch
-
-  branch=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
-  stat=`parse_git_status`
-
-  if [ -n "${branch}" ]
-  then
-    branch_name=" (${branch}) "
-  else
-    branch_name=""
-  fi
-
-  case "$stat" in
-    1) t=-b
-      c=wierd
-    ;;
-    2) t=-i
-      c=caret
-    ;;
-    3) c=warning
-      t=-b
-    ;;
-    4) c=caret
-      t=-b
-    ;;
-    5) c=error
-      t=-b
-    ;;
-    0) c=wierd
-      t=-th
-    ;;
-    *) return;;
-  esac
-
-  colorized_branch=`colorize $c $t $branchName`
-  if [ -n "$colorized_branch" ]
-  then
-    echo $c
-    echo $t
-    echo "$colorized_branch"
-  else
-    echo "[an error occured]"
-  fi
-}
-
-
 declare -x colorize
-declare -x parse_git_branch
-declare -x parse_git_status
 declare -xA ps1
 declare -x PS1
 
@@ -149,8 +47,7 @@ ps1=(
   [sp]=`colorize error -b '>'`
   [usr]=`colorize caret -b '\u@\h'`
   [dir]=`colorize info -b '\w'`
-  [git]=`parse_git_branch`
+  [git]=`git branch 2>/dev/null | grep '^*'`
 )
 
-PS1="${debian_chroot:+($debian_chroot)}${ps1[time]} ${ps1[sp]} ${ps1[usr]} ${ps1[sp]} ${ps1[dir]} ${ps1[sp]}${ps1[git]}${ps1[sp]}${ps1[sp]} "
-
+PS1="${debian_chroot:+($debian_chroot)}${ps1[time]} ${ps1[sp]} ${ps1[usr]} ${ps1[sp]} ${ps1[dir]} ${ps1[sp]} ${ps1[git]} ${ps1[sp]}${ps1[sp]} "
